@@ -1,0 +1,24 @@
+.site-blog-posts div.list
+{
+}
+.site-blog-posts div.detail-list-item
+{
+   min-height: 2em;
+}
+.site-blog-posts div.post-details
+{
+   color: #999999;
+   margin-bottom: 0.25em;
+}
+.site-blog-posts div.description
+{
+   clear: left;
+   width: 100%;                   /* IE6 needs any width */
+   overflow: hidden;
+   -o-text-overflow: ellipsis;    /* Opera */
+   text-overflow: ellipsis;       /* IE, Safari (WebKit) */
+}
+.site-blog-posts h4
+{
+   margin-bottom: 0.25em;
+}

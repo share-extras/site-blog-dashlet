@@ -1,0 +1,6 @@
+<webscript>
+   <shortname>Site Blog</shortname>
+   <description>Component used to show latest blog posts in the site</description>
+   <family>site-dashlet</family>
+   <url>/components/dashlets/site-blog</url>
+</webscript>

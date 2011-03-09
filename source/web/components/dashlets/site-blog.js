@@ -76,143 +76,191 @@
       options:
       {
          /**
-          * The component id.
-          *
-          * @property componentId
-          * @type string
-          */
-         componentId: "",
-
-         /**
           * ID of the current site
           * 
           * @property siteId
           * @type string
           * @default ""
           */
-         siteId: ""
+         siteId: "",
+
+         /**
+          * Create Post dialogue editor config
+          * 
+          * @property postDialogEditorConfig
+          * @type object
+          */
+         postDialogEditorConfig : 
+         {
+            inline_styles: false,
+            convert_fonts_to_spans: false,
+            theme:'advanced',
+            theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,formatselect,forecolor",         
+            theme_advanced_buttons2 :"bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,removeformat",
+            theme_advanced_toolbar_location : "top",
+            theme_advanced_toolbar_align : "left",
+            theme_advanced_statusbar_location : "bottom",
+            theme_advanced_path  : false,
+            theme_advanced_resizing : true,
+            theme_advanced_buttons3 : null,
+            language:'en'
+         }
       },
+      
+      /**
+       * Body DOM container.
+       * 
+       * @property bodyContainer
+       * @type object
+       */
+      bodyContainer: null,
+      
+      /**
+       * Create post modal dialog
+       * 
+       * @property postDialog
+       * @type Alfresco.module.SimpleDialog
+       */
+      postDialog: null,
 
       /**
        * Fired by YUI when parent element is available for scripting
+       * 
        * @method onReady
        */
       onReady: function SiteBlog_onReady()
       {
+         // The body container
+         this.bodyContainer = Dom.get(this.id + "-body");
+         
          Event.addListener(this.id + "-createPost-link", "click", this.onCreatePostClick, this, true);
-      },
-      
-      onCreatePostClick: function SiteBlog_onCreatePostClick()
-      {
-         return this.selectedValue;
+         this.loadPosts();
       },
 
       /**
-       * Main entrypoint to show the dialog
-       *
-       * @method show
+       * Load latest blog posts and render into the dashlet
+       * 
+       * @method loadPosts
        */
-      show: function AmSD_show()
+      loadPosts: function SiteBlog_loadPosts()
       {
-         if (this.dialog)
+         // Load the user timeline
+         Alfresco.util.Ajax.request(
          {
-            this._showDialog();
-         }
-         else
-         {
-            var data =
+            url: Alfresco.constants.PROXY_URI + "api/blog/site/" + this.options.siteId + "/blog/posts?pageSize=10",
+            successCallback:
             {
-               htmlid: this.id
-            };
-            if (this.options.templateRequestParams)
+               fn: this.onPostsLoaded,
+               scope: this
+            },
+            failureCallback:
             {
-                data = YAHOO.lang.merge(this.options.templateRequestParams, data);
-            }
-            Alfresco.util.Ajax.request(
-            {
-               url: this.options.templateUrl,
-               dataObj:data,
-               successCallback:
-               {
-                  fn: this.onTemplateLoaded,
-                  scope: this
-               },
-               failureMessage: "Could not load dialog template from '" + this.options.templateUrl + "'.",
-               scope: this,
-               execScripts: true
-            });
-         }
-         return this;
-      },
-      
-      /**
-       * Event callback when dialog template has been loaded
-       *
-       * @method onTemplateLoaded
-       * @param response {object} Server response from load template XHR request
-       */
-      onTemplateLoaded: function AmSD_onTemplateLoaded(response)
-      {
-         // Inject the template from the XHR request into a new DIV element
-         var containerDiv = document.createElement("div");
-         containerDiv.innerHTML = response.serverResponse.responseText;
-
-         // The panel is created from the HTML returned in the XHR request, not the container
-         var dialogDiv = Dom.getFirstChild(containerDiv);
-         while (dialogDiv && dialogDiv.tagName.toLowerCase() != "div")
-         {
-            dialogDiv = Dom.getNextSibling(dialogDiv);
-         }
-
-         // Create and render the YUI dialog
-         this.dialog = Alfresco.util.createYUIPanel(dialogDiv,
-         {
-            width: this.options.width
+               fn: this.onPostsLoadFailed,
+               scope: this
+            },
+            scope: this,
+            noReloadOnAuthFailure: true
          });
-
-         // Are we controlling a Forms Service-supplied form?
-         if (Dom.get(this.id + "-form-submit"))
+      },
+      
+      /**
+       * Posts loaded successfully
+       * 
+       * @method onPostsLoaded
+       * @param p_response {object} Response object from request
+       */
+      onPostsLoaded: function SitePoll_onPostsLoaded(p_response)
+      {
+         var posts = p_response.json.items;
+         //posts.sort(sortByCreationDate);
+         var create = p_response.json.metadata.blogPermissions.create;
+         var numPosts = p_response.json.itemCount;
+         var el, post, title, postContent, html;
+         
+         if (numPosts > 0)
          {
-            this.isFormOwner = false;
-            // FormUI component will initialise form, so we'll continue processing later
-            this.formsServiceDeferred.fulfil("onTemplateLoaded");
+            // Remove any existing content
+            this.bodyContainer.innerHTML = "";
+            
+            for ( var i = 0; i < posts.length; i++)
+            {
+               html = "\n";
+               post = posts[i];
+               title = post.title ? post.title : "",
+               postContent = post.content != "" ? this.stripHTML(post.content).substring(0, 101) : "",
+               postedBy = "<a href=\"" + Alfresco.constants.URL_PAGECONTEXT + "user/" + encodeURI(post.author.username) + "/profile\" class=\"theme-color-1\">" + $html(post.author.firstName) + " " + $html(post.author.lastName) + "</a>";
+               
+               if (postContent.length >= 100)
+               {
+                  // Trim up to last complete word
+                  postContent = postContent.substring(0, postContent.lastIndexOf(" ")) + "...";
+               }
+               
+               el = document.createElement('div');
+               Dom.addClass(el, "detail-list-item");
+               if (i == 0)
+               {
+                  Dom.addClass(el, "first-item");
+               }
+               if (i == posts.length - 1)
+               {
+                  Dom.addClass(el, "last-item");
+               }
+               html += "<h4><a href=\"" + Alfresco.constants.URL_PAGECONTEXT + "site/" + this.options.siteId + "/blog-postview?container=blog&postId=" + encodeURI(post.name) + "\" class=\"theme-color-1 blog-post-title\" title=\"" + $html(title) + "\">" + $html(title) + "</a></h4>\n";
+               html += "<div class=\"post-details\">" + this.msg("text.posted-by", postedBy) + " " + this.msg("text.modified-on", Alfresco.util.formatDate(post.createdOn)) + "</div>\n";
+               html += "<div class=\"description\">" + postContent + "</div>\n";
+               el.innerHTML = html;
+               this.bodyContainer.appendChild(el);
+            }
          }
          else
          {
-            // OK button needs to be "submit" type
-            this.widgets.okButton = Alfresco.util.createYUIButton(this, "ok", null,
-            {
-               type: "submit"
-            });
-
-            // Cancel button
-            this.widgets.cancelButton = Alfresco.util.createYUIButton(this, "cancel", this.onCancel);
-
-            // Form definition
-            this.isFormOwner = true;
-            this.form = new Alfresco.forms.Form(this.id + "-form");
-            this.form.setSubmitElements(this.widgets.okButton);
-            this.form.setAJAXSubmit(true,
-            {
-               successCallback:
-               {
-                  fn: this.onSuccess,
-                  scope: this
-               },
-               failureCallback:
-               {
-                  fn: this.onFailure,
-                  scope: this
-               }
-            });
-            this.form.setSubmitAsJSON(true);
-            this.form.setShowSubmitStateDynamically(true, false);
-
-            // Initialise the form
-            this.form.init();
-
-            this._showDialog();
+            // Create the new div
+            var el = document.createElement('div');
+            Dom.addClass(el, "detail-list-item");
+            Dom.addClass(el, "first-item");
+            Dom.addClass(el, "last-item");
+            el.innerHTML = "<span>" + this.msg("label.noPosts") + "</span>";
+            this.bodyContainer.appendChild(el);
          }
+      },
+      
+      /**
+       * Posts load failed
+       * 
+       * @method onPostsLoadFailed
+       * @param p_response {object} Response object from request
+       */
+      onPostsLoadFailed: function SiteBlog_onPostsLoadFailed(p_response)
+      {
+      },
+
+      /**
+       * Sort blog posts by creation date
+       * 
+       * @method sortByCreationDate
+       * @param post1 {object} Object representing the first blog post
+       * @param post2 {object} Object representing the second blog post
+       * @return {int} -1 if post1 posted after post2, 1 if posted before, 0 if the same
+       */
+      sortByCreationDate: function SiteBlog_sortByCreationDate(post1, post2)
+      {
+         return (post1.name > post2.name) ? -1 : (post1.name < post2.name) ? 1 : 0;
+      },
+
+      /**
+       * Remove HTML tags from post content, leaving only the text
+       * 
+       * @method stripHTML
+       * @param html {string} Input text containing HTML
+       * @return {string} Text with HTML tags stripped out
+       */
+      stripHTML: function SiteBlog_stripHTML(html)
+      {
+         // Method from http://stackoverflow.com/questions/822452/strip-html-from-text-javascript
+         var tmp = document.createElement("div");
+         tmp.innerHTML = html;
+         return tmp.textContent||tmp.innerText;
       },
 
       /**
@@ -228,21 +276,64 @@
        */
       onCreatePostClick: function SiteBlog_onCreatePostClick(e)
       {
-         var actionUrl = Alfresco.constants.URL_SERVICECONTEXT + "modules/blog/post/" + encodeURIComponent(this.options.siteId);
+         var actionUrl = Alfresco.constants.PROXY_URI + "api/blog/site/" + encodeURIComponent(this.options.siteId) + "/blog/posts";
          
          Event.stopEvent(e);
          
-         if (!this.configDialog)
+         if (!this.postDialog)
          {
-            this.configDialog = new Alfresco.module.SimpleDialog(this.id + "-configDialog").setOptions(
+            this.postDialog = new Alfresco.module.SimpleDialog(this.id + "-configDialog").setOptions(
             {
                width: "50em",
-               templateUrl: Alfresco.constants.URL_SERVICECONTEXT + "modules/blog/post/" + encodeURIComponent(this.options.siteId),
+               templateUrl: Alfresco.constants.URL_SERVICECONTEXT + "modules/blog/site/" + encodeURIComponent(this.options.siteId) + "/blog/post",
                actionUrl: actionUrl,
                onSuccess:
                {
-                  fn: function SiteBlog_onConfigPoll_callback(e)
+                  fn: function SiteBlog_onPostSuccess_callback(p_response, p_obj)
                   {
+                     this.loadPosts();
+                     var postName = p_response.json.item.name;
+                     var postTitle = p_response.json.item.title;
+                     if (p_response.json.item.isDraft === true)
+                     {
+                        Alfresco.util.PopupManager.displayMessage(
+                        {
+                           text: this.msg("message.savedDraft", postTitle)
+                        });
+                     }
+                     else
+                     {
+                        Alfresco.util.Ajax.request(
+                        {
+                           url: Alfresco.constants.PROXY_URI + "api/blog/post/site/" + this.options.siteId + "/blog/" + postName + "/publishing",
+                           method: Alfresco.util.Ajax.POST,
+                           dataObj: { 
+                              action: "publish"
+                           },
+                           requestContentType: Alfresco.util.Ajax.JSON,
+                           responseContentType: Alfresco.util.Ajax.JSON,
+                           successMessage: this.msg("message.posted", postTitle),
+                           failureMessage: this.msg("message.postExternalFailure", postTitle),
+                           scope: this,
+                           noReloadOnAuthFailure: true
+                        });
+                     }
+                     this.postDialog = null;
+                  },
+                  scope: this
+               },
+               onFailure:
+               {
+                  fn: function SiteBlog_onPostFailure_callback(p_response, p_obj)
+                  {
+                     // Re-enable form buttons
+                     this.postDialog.widgets.okButton.set("disabled", false);
+                     this.postDialog.widgets.cancelButton.set("disabled", false);
+                     this.postDialog.widgets.saveDraftButton.set("disabled", false);
+                     Alfresco.util.PopupManager.displayMessage(
+                     {
+                        text: this.msg("message.postFailure")
+                     });
                   },
                   scope: this
                },
@@ -250,35 +341,72 @@
                {
                   fn: function SiteBlog_doSetupForm_callback(form)
                   {
-                  /*
-                        new Alfresco.BlogPostCreate(this.id).setOptions(
-                        {
-                           siteId: this.options.siteId,
-                           editorConfig : 
-                           {
-                              inline_styles: false,
-                              convert_fonts_to_spans: false,
-                              theme:'advanced',
-                              theme_advanced_buttons1 : "bold,italic,underline,strikethrough,|,justifyleft,justifycenter,justifyright,justifyfull,|,formatselect,fontselect,fontsizeselect,forecolor",         
-                              theme_advanced_buttons2 :"bullist,numlist,|,outdent,indent,blockquote,|,undo,redo,|,link,unlink,anchor,image,cleanup,help,code,removeformat",
-                              theme_advanced_toolbar_location : "top",
-                              theme_advanced_toolbar_align : "left",
-                              theme_advanced_statusbar_location : "bottom",
-                              theme_advanced_path  : false,
-                              theme_advanced_resizing : true,
-                              theme_advanced_buttons3 : null,
-                              language:'${locale?substring(0, 2)}'         
-                           },
-                           containerId: "blog",
-                           editMode: false
-                        }).setMessages(
-                              Alfresco.messages.scope[this.name]
-                        );
-                        */
-                     this.dialog = Alfresco.util.createYUIPanel(dialogDiv,
+                     // Set up editor
+                     if (!this.postDialog.widgets.editor)
                      {
-                        width: "30em"
-                     });
+                        this.postDialog.widgets.editor = new Alfresco.util.RichEditor(Alfresco.constants.HTML_EDITOR, this.postDialog.id + "-content", this.options.postDialogEditorConfig);
+                        this.postDialog.widgets.editor.addPageUnloadBehaviour(this.msg("message.unsavedChanges.blog"));
+                     }
+                     this.postDialog.widgets.editor.render();
+
+                     // Add validation to the rich text editor
+                     this.postDialog.widgets.validateOnZero = 0;
+                     var keyUpIdentifier = (Alfresco.constants.HTML_EDITOR === "YAHOO.widget.SimpleEditor") ? "editorKeyUp" : "onKeyUp";         
+                     this.postDialog.widgets.editor.subscribe(keyUpIdentifier, function (e)
+                     {
+                        this.postDialog.widgets.validateOnZero++;
+                        YAHOO.lang.later(500, this.postDialog, this.validateAfterEditorChange);
+                     }, this, true);
+                     
+                     // Title is mandatory
+                     this.postDialog.form.addValidation(this.postDialog.id + "-title", Alfresco.forms.validation.mandatory, null, "blur");
+                     this.postDialog.form.addValidation(this.postDialog.id + "-title", Alfresco.forms.validation.length,
+                     {
+                        max: 256,
+                        crop: true
+                     }, "keyup");
+                     
+                     // Text is mandatory
+                     this.postDialog.form.addValidation(this.postDialog.id + "-content", Alfresco.forms.validation.mandatory, null);
+
+                     // Set up Save Draft button
+                     if (!this.postDialog.widgets.saveDraftButton)
+                     {
+                        this.postDialog.widgets.saveDraftButton = Alfresco.util.createYUIButton(this.postDialog, "save", this.onSaveDraftButtonClick);
+                        // Add to list of submit elements for validation
+                        this.postDialog.form.addSubmitElement(this.postDialog.widgets.saveDraftButton);
+                     }
+                     
+                     // Add a handler to the Post button - in case the Post Draft button has been clicked previously
+                     this.postDialog.widgets.okButton.subscribe("click", this.onOKButtonClick, null, this.postDialog);
+                     
+                     // initialize the tag library
+                     if (!this.postDialog.tagLibrary)
+                     {
+                        this.postDialog.tagLibrary = new Alfresco.module.TagLibrary(this.postDialog.id);
+                        this.postDialog.tagLibrary.setOptions(
+                        {
+                           siteId: this.options.siteId
+                        });
+                     }
+                     this.postDialog.tagLibrary.initialize(this.postDialog.form);
+                  },
+                  scope: this
+               },
+               doBeforeFormSubmit:
+               {
+                  fn: function SiteBlog_doSetupForm_callback(form)
+                  {
+                     //Put the HTML back into the text area
+                     this.postDialog.widgets.editor.save();
+   
+                      // disable ui elements
+                     this.postDialog.widgets.okButton.set("disabled", true);
+                     this.postDialog.widgets.cancelButton.set("disabled", true);
+                     this.postDialog.widgets.saveDraftButton.set("disabled", true);
+   
+                     // update the tags set in the form
+                     this.postDialog.tagLibrary.updateForm(this.postDialog.id + "-form", "tags");
                   },
                   scope: this
                }
@@ -286,13 +414,59 @@
          }
          else
          {
-            this.configDialog.setOptions(
+            this.postDialog.setOptions(
             {
                actionUrl: actionUrl
             });
          }
          
-         this.configDialog.show();
+         this.postDialog.show();
+      },
+      
+      /**
+       * Handle the save draft button being clicked
+       * 
+       * @method onSaveDraftButtonClick
+       * @param p_args event info
+       * @param p_obj The Button instance
+       */
+      onSaveDraftButtonClick: function SiteBlog_onSaveDraftButtonClick(p_args, p_obj)
+      {
+         Dom.setAttribute(this.id + "-draft", "value", "true");
+         p_obj.submitForm();
+      },
+      
+      /**
+       * Handle the OK button being clicked
+       * 
+       * @method onOKButtonClick
+       * @param p_args event info
+       * @param p_obj The Button instance
+       */
+      onOKButtonClick: function SiteBlog_onOKButtonClick(p_args, p_obj)
+      {
+         Dom.setAttribute(this.id + "-draft", "value", "false");
+      },
+
+      /**
+       * Called when a key was pressed in the rich text editor.
+       * Will trigger form validation after the last key stroke after a seconds pause.
+       *
+       * @method validateAfterEditorChange
+       */
+      validateAfterEditorChange: function SiteBlog_validateAfterEditorChange()
+      {
+         this.widgets.validateOnZero--;
+         if (this.widgets.validateOnZero === 0)
+         {
+            var oldLength = Dom.get(this.id + "-content").value.length;
+            this.widgets.editor.save();
+            var newLength = Dom.get(this.id + "-content").value.length;
+            if ((oldLength === 0 && newLength !== 0) || (oldLength > 0 && newLength === 0))
+            {
+               this.form.updateSubmitElements();
+            }
+         }
       }
    });
 })();

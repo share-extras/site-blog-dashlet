@@ -1,0 +1,5 @@
+<webscript>
+  <shortname>Blog dashlet post dialog</shortname>
+  <description>Dialogue to allow a user to post a new blog entry</description>
+  <url>/modules/blog/site/{siteId}/{componentId}/post</url>
+</webscript>

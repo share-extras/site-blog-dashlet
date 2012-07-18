@@ -1,4 +1,4 @@
-<#include "../component.head.inc">
+<#include "/org/alfresco/components/component.head.inc">
 <!-- Site Blog dashlet dependencies -->
 <@script type="text/javascript" src="${page.url.context}/modules/simple-dialog.js"></@script>
 <script type="text/javascript" src="${page.url.context}/modules/editors/tiny_mce/tiny_mce.js"></script>

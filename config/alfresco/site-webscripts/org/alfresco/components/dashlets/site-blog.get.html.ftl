@@ -1,20 +1,40 @@
 <script type="text/javascript">//<![CDATA[
-   new Alfresco.dashlet.SiteBlog("${args.htmlid}").setOptions(
+   var dashlet = new Alfresco.dashlet.SiteBlog("${args.htmlid}").setOptions(
    {
       "siteId": "${page.url.templateArgs.site!''}"
    }).setMessages(
       ${messages}
    );
    new Alfresco.widget.DashletResizer("${args.htmlid}", "${instance.object.id}");
+   
+   var createPostEvent = new YAHOO.util.CustomEvent("onDashletCreatePost");
+   createPostEvent.subscribe(dashlet.onCreatePostClick, dashlet, true);
+
+   new Alfresco.widget.DashletTitleBarActions("${args.htmlid}").setOptions(
+   {
+      actions:
+      [
+<#if userIsSiteContributor>
+         {
+            cssClass: "createPost",
+            eventOnClick: createPostEvent,
+            tooltip: "${msg("dashlet.createBlogPost.tooltip")?js_string}"
+         },
+</#if>
+         {
+            cssClass: "help",
+            bubbleOnClick:
+            {
+               message: "${msg("dashlet.help")?js_string}"
+            },
+            tooltip: "${msg("dashlet.help.tooltip")?js_string}"
+         }
+      ]
+   });
 //]]></script>
 
 <div class="dashlet site-blog-posts">
    <div class="title">${msg("header.siteBlog")}</div>
-<#if userIsSiteContributor>
-   <div class="toolbar">
-      <a id="${args.htmlid}-createPost-link" class="theme-color-1" title="${msg('list.createLink')}" href="${url.context}/page/site/${page.url.templateArgs.site}/blog-postedit">${msg("list.createLink")}</a>
-   </div>
-</#if>
    <div class="body scrollableList" id="${args.htmlid}-body" <#if args.height??>style="height: ${args.height}px;"</#if>>
    </div>
 </div>

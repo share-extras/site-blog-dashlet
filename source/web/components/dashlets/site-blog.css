@@ -22,3 +22,8 @@
 {
    margin-bottom: 0.25em;
 }
+
+.site-blog-posts .titleBarActions .createPost
+{
+    background-image: url("../images/new-blog-16.png");
+}

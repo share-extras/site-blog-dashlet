@@ -132,8 +132,6 @@
       {
          // The body container
          this.bodyContainer = Dom.get(this.id + "-body");
-         
-         Event.addListener(this.id + "-createPost-link", "click", this.onCreatePostClick, this, true);
          this.loadPosts();
       },
 

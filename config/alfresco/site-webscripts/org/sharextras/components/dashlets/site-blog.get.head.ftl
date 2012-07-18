@@ -6,5 +6,5 @@
 <@link rel="stylesheet" type="text/css" href="${page.url.context}/modules/taglibrary/taglibrary.css" />
 <@script type="text/javascript" src="${page.url.context}/modules/taglibrary/taglibrary.js"></@script>
 <!-- Site Blog dashlet -->
-<@script type="text/javascript" src="${page.url.context}/res/components/dashlets/site-blog.js"></@script>
-<@link rel="stylesheet" type="text/css" href="${page.url.context}/res/components/dashlets/site-blog.css" />
+<@script type="text/javascript" src="${page.url.context}/res/extras/components/dashlets/site-blog.js"></@script>
+<@link rel="stylesheet" type="text/css" href="${page.url.context}/res/extras/components/dashlets/site-blog.css" />

@@ -207,7 +207,7 @@
                   Dom.addClass(el, "last-item");
                }
                html += "<h4><a href=\"" + Alfresco.constants.URL_PAGECONTEXT + "site/" + this.options.siteId + "/blog-postview?container=blog&postId=" + encodeURI(post.name) + "\" class=\"theme-color-1 blog-post-title\" title=\"" + $html(title) + "\">" + $html(title) + "</a></h4>\n";
-               html += "<div class=\"post-details\">" + this.msg("text.posted-by", postedBy) + " " + this.msg("text.modified-on", Alfresco.util.formatDate(post.createdOn)) + "</div>\n";
+               html += "<div class=\"post-details\">" + this.msg("text.posted-by", postedBy) + " " + (Alfresco.util.relativeTime ? Alfresco.util.relativeTime(new Date(post.createdOn)) : this.msg("text.modified-on", Alfresco.util.formatDate(post.createdOn))) + "</div>\n";
                html += "<div class=\"description\">" + postContent + "</div>\n";
                el.innerHTML = html;
                this.bodyContainer.appendChild(el);

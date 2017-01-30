@@ -1,3 +1,17 @@
+<@markup id="css" >
+    <@link rel="stylesheet" type="text/css" href="${url.context}/res/modules/taglibrary/taglibrary.css" />
+    <@link rel="stylesheet" type="text/css" href="${url.context}/res/extras/components/dashlets/site-blog.css" />
+</@>
+
+<@markup id="js">
+    <#-- JavaScript Dependencies -->
+    <@script type="text/javascript" src="${url.context}/res/modules/simple-dialog.js" group="dashlets"></@script>
+    <@script type="text/javascript" src="${url.context}/res/modules/editors/tiny_mce/tiny_mce.js" group="dashlets"></@script>
+    <@script type="text/javascript" src="${url.context}/res/modules/editors/tiny_mce.js" group="dashlets"></@script>
+    <@script type="text/javascript" src="${url.context}/res/modules/taglibrary/taglibrary.js" group="dashlets"></@script>
+    <@script type="text/javascript" src="${url.context}/res/extras/components/dashlets/site-blog.js" group="dashlets"></@script>
+</@>
+
 <script type="text/javascript">//<![CDATA[
    var dashlet = new Alfresco.dashlet.SiteBlog("${args.htmlid}").setOptions(
    {
@@ -6,7 +20,7 @@
       ${messages}
    );
    new Alfresco.widget.DashletResizer("${args.htmlid}", "${instance.object.id}");
-   
+
    var createPostEvent = new YAHOO.util.CustomEvent("onDashletCreatePost");
    createPostEvent.subscribe(dashlet.onCreatePostClick, dashlet, true);
 

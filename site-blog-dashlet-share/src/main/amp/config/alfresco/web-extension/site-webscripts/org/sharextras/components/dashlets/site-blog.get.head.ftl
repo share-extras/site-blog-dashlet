@@ -1,10 +1,3 @@
-<#include "/org/alfresco/components/component.head.inc">
-<!-- Site Blog dashlet dependencies -->
-<@script type="text/javascript" src="${page.url.context}/modules/simple-dialog.js"></@script>
-<script type="text/javascript" src="${page.url.context}/modules/editors/tiny_mce/tiny_mce.js"></script>
-<@script type="text/javascript" src="${page.url.context}/modules/editors/tiny_mce.js"></@script>
-<@link rel="stylesheet" type="text/css" href="${page.url.context}/modules/taglibrary/taglibrary.css" />
-<@script type="text/javascript" src="${page.url.context}/modules/taglibrary/taglibrary.js"></@script>
-<!-- Site Blog dashlet -->
-<@script type="text/javascript" src="${page.url.context}/res/extras/components/dashlets/site-blog.js"></@script>
-<@link rel="stylesheet" type="text/css" href="${page.url.context}/res/extras/components/dashlets/site-blog.css" />
++<#-- PLEASE NOTE:
++<#-- Use of .head.ftl WebScript files has now been deprecated from WebScripts that render Share Components.    -->
++<#-- Dependencies are now loaded through the use of the <@script> and <@link> tags in the main .html.ftl file.  -->

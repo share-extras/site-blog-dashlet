@@ -21,19 +21,7 @@ To install the dashlet, simply drop the `site-blog-dashlet-<version>.jar` file i
 Building from Source
 --------------------
 
-An Ant build script is provided to build a JAR file containing the custom files, which can then be installed into the `tomcat/shared/lib` folder of your Alfresco installation.
-
-To build the JAR file, run Ant from the base project directory.
-
-    ant dist-jar
-
-The command should build a JAR file named `site-blog-dashlet-<version>.jar` in the `build/dist` directory within your project, which you can then copy into the `tomcat/shared/lib` folder of your Alfresco installation.
-
-Alternatively, you can use the build script to _hot deploy_ the JAR file directly into a local Tomcat instance for testing. You will need to use the `hotcopy-tomcat-jar` task and set the `tomcat.home` property in Ant.
-
-    ant -Dtomcat.home=C:/Alfresco/tomcat hotcopy-tomcat-jar
-    
-After you have deployed the JAR file you will need to restart Tomcat to ensure it picks up the custom resources.
+This project uses Maven. To build, run `mvn package` which will produce an AMP in the target directory.
 
 Usage
 -----
